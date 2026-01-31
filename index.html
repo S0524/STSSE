@@ -5,157 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>尖塔存档修改工具</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "微软雅黑", "宋体", sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
-            min-height: 100vh;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .app-container {
-            width: 100%;
-            max-width: 1000px;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(138, 173, 255, 0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .app-title {
-            text-align: center;
-            color: #2d4166;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-        .upload-section {
-            width: 100%;
-            padding: 15px;
-            background: #f8fafc;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        #fileInput {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background: #ffffff;
-            cursor: pointer;
-            transition: border-color 0.2s;
-            font-size: 14px;
-        }
-        #fileInput:hover, #fileInput:focus {
-            border-color: #60a5fa;
-            outline: none;
-        }
-        .textareas-container {
-            width: 100%;
-        }
-        textarea {
-            width: 100%;
-            height: 220px;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            resize: vertical;
-            font-size: 14px;
-            line-height: 1.6;
-            background: #ffffff;
-            color: #1e293b;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
-            transition: border-color 0.2s;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #60a5fa;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 0 0 3px rgba(96, 165, 250, 0.1);
-        }
-        textarea::placeholder {
-            color: #94a3b8;
-        }
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        .func-btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            background: #64748b;
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .func-btn:hover {
-            background: #475569;
-        }
-        .func-btn.主要功能 {
-            background: #3b82f6;
-        }
-        .func-btn.主要功能:hover {
-            background: #2563eb;
-        }
-        .func-btn.下载 {
-            background: #10b981;
-            padding: 11px 28px;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        .func-btn.下载:hover {
-            background: #059669;
-        }
-        .func-btn.复制 {
-            background: #8b5cf6;
-        }
-        .func-btn.复制:hover {
-            background: #7c3aed;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", "宋体", sans-serif; }
+        body { background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); min-height: 100vh; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .app-container { width: 100%; max-width: 1000px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(138, 173, 255, 0.1); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .app-title { text-align: center; color: #2d4166; font-size: 24px; font-weight: 700; letter-spacing: 0.3px; }
+        .upload-section { width: 100%; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+        #fileInput { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; cursor: pointer; transition: border-color 0.2s; font-size: 14px; }
+        #fileInput:hover, #fileInput:focus { border-color: #60a5fa; outline: none; }
+        .textareas-container { width: 100%; }
+        textarea { width: 100%; height: 220px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; resize: vertical; font-size: 14px; line-height: 1.6; background: #ffffff; color: #1e293b; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02); transition: border-color 0.2s; }
+        textarea:focus { outline: none; border-color: #60a5fa; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 0 0 3px rgba(96, 165, 250, 0.1); }
+        textarea::placeholder { color: #94a3b8; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .func-btn { padding: 10px 18px; border: none; border-radius: 6px; background: #64748b; color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        .func-btn:hover { background: #475569; }
+        .func-btn.主要功能 { background: #3b82f6; }
+        .func-btn.主要功能:hover { background: #2563eb; }
+        .func-btn.下载 { background: #10b981; padding: 11px 28px; font-size: 15px; font-weight: 600; }
+        .func-btn.下载:hover { background: #059669; }
+        .func-btn.复制 { background: #8b5cf6; }
+        .func-btn.复制:hover { background: #7c3aed; }
     </style>
 </head>
 <body>
     <div class="app-container">
         <h1 class="app-title">尖塔存档修改工具</h1>
-        
         <div class="upload-section">
             <input type="file" id="fileInput" title="选择存档文件" onchange="readUploadFile()">
         </div>
-        
         <div class="textareas-container">
             <textarea id="inputJson" placeholder="选择文件后自动显示内容..."></textarea>
         </div>
-        
         <div class="btn-group">
             <button class="func-btn" onclick="modifyNums()">修改数值</button>
-            <button class="func-btn" onclick="handleRelics()">添加遗物</button>
+            <button class="func-btn" onclick="addRelicsAndKeys()">添加遗物</button>
             <button class="func-btn" onclick="filterCards()">删除诅咒</button>
             <button class="func-btn" onclick="upgradeAllCards()">升级卡牌</button>
             <button class="func-btn 主要功能" onclick="runAll()">一键处理</button>
             <button class="func-btn 复制" onclick="copyResult()">复制结果</button>
         </div>
-        
         <div class="textareas-container">
             <textarea id="outputJson" placeholder="修改后的结果会显示在这里..."></textarea>
         </div>
-        
         <div class="btn-group">
             <button class="func-btn 下载" onclick="downloadMatchingFile()">下载文件</button>
         </div>
     </div>
-
     <script>
         const inputEl = document.getElementById('inputJson');
         const outputEl = document.getElementById('outputJson');
@@ -163,7 +58,6 @@
         const ENCRYPTION_KEY = 'key';
         let originalFullFileName = '';
         let isContentEncrypted = false;
-
         const delCardIds = ['AscendersBane','CurseOfTheBell','Necronomicurse','Pride','Clumsy','Decay','Doubt','Injury','Normality','Pain','Parasite','Regret','Shame','Writhe'];
         const eggRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2'];
 
@@ -216,16 +110,13 @@
         function readUploadFile() {
             const file = fileInput.files[0];
             if (!file) return;
-            
             originalFullFileName = file.name;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const fileContent = e.target.result;
                     const { isEncrypted, jsonStr } = judgeContentStatus(fileContent);
                     isContentEncrypted = isEncrypted;
-
                     const parsedObj = JSON.parse(jsonStr);
                     inputEl.value = jsonStr;
                     outputEl.value = JSON.stringify(parsedObj, null, 2);
@@ -264,13 +155,16 @@
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
-        function handleRelics() {
+        function addRelicsAndKeys() {
             const obj = getJsonObj();
             if (!obj) return;
             if (!Array.isArray(obj.relics)) obj.relics = [];
             if (!Array.isArray(obj.uncommon_relics)) obj.uncommon_relics = [];
             eggRelics.forEach(egg => !obj.relics.includes(egg) && obj.relics.push(egg));
             obj.uncommon_relics = obj.uncommon_relics.filter(item => !eggRelics.includes(item));
+            obj.has_ruby_key = true;
+            obj.has_emerald_key = true;
+            obj.has_sapphire_key = true;
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
@@ -307,6 +201,10 @@
             obj.cards = obj.cards.filter(card => !delCardIds.includes(card.id));
             obj.cards.forEach(card => card.upgrades = 1);
             
+            obj.has_ruby_key = true;
+            obj.has_emerald_key = true;
+            obj.has_sapphire_key = true;
+
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
@@ -314,12 +212,10 @@
             const modifiedJson = outputEl.value.trim();
             if (!modifiedJson) return alert('无修改后的内容可下载！');
             if (!originalFullFileName) return alert('请先选择文件！');
-
             try {
                 let fileContent = isContentEncrypted ? encode(modifiedJson) : modifiedJson;
                 const blobType = isContentEncrypted ? 'text/plain;charset=utf-8' : 'application/json;charset=utf-8';
                 const blob = new Blob([fileContent], { type: blobType });
-                
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 a.download = originalFullFileName;
