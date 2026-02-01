@@ -42,10 +42,8 @@
             <button class="func-btn" onclick="filterCards()">删除诅咒</button>
             <button class="func-btn" onclick="upgradeAllCards()">升级卡牌</button>
             <button class="func-btn 主要功能" onclick="runAll()">一键处理</button>
-            <!-- 新增两个按钮 -->
             <button class="func-btn" onclick="deleteAttackCards()">删除攻击</button>
             <button class="func-btn" onclick="deleteDefendCards()">删除防御</button>
-            <!-- 原有复制按钮 -->
             <button class="func-btn 复制" onclick="copyResult()">复制结果</button>
         </div>
         <div class="textareas-container">
@@ -63,12 +61,9 @@
         let originalFullFileName = '';
         let isContentEncrypted = false;
         const delCardIds = ['AscendersBane','CurseOfTheBell','Necronomicurse','Pride','Clumsy','Decay','Doubt','Injury','Normality','Pain','Parasite','Regret','Shame','Writhe'];
-        const eggRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2'];
-        // 攻击卡牌ID集合
+        const eggRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2','Smiling Mask','The Courier','Black Star','WingedGreaves',,'Membership Card',,'Omamori'];
         const attackCardIds = ['Strike_R', 'Strike_G', 'Strike_B', 'Strike_P'];
-        // 防御卡牌ID集合
         const defendCardIds = ['Defend_R', 'Defend_G', 'Defend_B', 'Defend_P'];
-
         function xorWithKey(data, key) {
             const keyLen = key.length;
             return new Uint8Array(data.map((byte, i) => byte ^ key[i % keyLen]));
@@ -150,7 +145,7 @@
         function modifyNums() {
             const obj = getJsonObj();
             if (!obj) return;
-            obj.gold = 9999;
+            obj.gold = 999;
             obj.red = 10;
             obj.max_health = 99;
             obj.current_health = 99;
@@ -185,7 +180,7 @@
         function runAll() {
             const obj = getJsonObj();
             if (!obj) return;
-            obj.gold = 99999;
+            obj.gold = 999;
             obj.red = 10;
             obj.max_health = 99;
             obj.current_health = 99;
