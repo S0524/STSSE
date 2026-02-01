@@ -5,15 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>尖塔存档修改工具</title>
     <style>
-        /* 修复移动端视口高度问题 */
         html, body {
-            height: 100%;
-            overflow: auto;
             margin: 0;
+            overflow: auto;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", "宋体", sans-serif; }
-        body { background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); min-height: 100vh; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .app-container { width: 100%; max-width: 1000px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(138, 173, 255, 0.1); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        body { 
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); 
+            min-height: 100vh; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        .app-container { 
+            width: 100%; 
+            max-width: 1000px; 
+            background: #ffffff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(138, 173, 255, 0.1); 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
         .app-title { text-align: center; color: #2d4166; font-size: 24px; font-weight: 700; letter-spacing: 0.3px; }
         .upload-section { width: 100%; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
         #fileInput { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; cursor: pointer; transition: border-color 0.2s; font-size: 14px; }
@@ -32,7 +47,6 @@
         .func-btn.复制 { background: #8b5cf6; }
         .func-btn.复制:hover { background: #7c3aed; }
 
-        /* 修复移动端弹窗居中的样式 */
         .custom-alert {
             position: fixed;
             top: 0;
@@ -43,7 +57,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            pointer-events: none; /* 仅让弹窗内容可点击 */
+            pointer-events: none;
             display: none;
         }
         .custom-alert .alert-content {
@@ -54,7 +68,7 @@
             width: 85%;
             max-width: 350px;
             text-align: center;
-            pointer-events: auto; /* 弹窗内容可交互 */
+            pointer-events: auto;
         }
         .custom-alert-title {
             font-size: 18px;
@@ -81,7 +95,7 @@
         .custom-alert-btn:hover {
             background: #2563eb;
         }
-        /* 遮罩层 */
+        /* 遮罩层 */ /* 修正：CSS注释语法错误 */
         .alert-mask {
             position: fixed;
             top: 0;
@@ -138,13 +152,13 @@
         const customAlert = document.getElementById('customAlert');
         const alertMask = document.getElementById('alertMask');
         const alertText = document.getElementById('alertText');
-        const ENCRYPTION_KEY = 'key'; // 加密密钥
+        const ENCRYPTION_KEY = 'key';
         let originalFileName = '';
         let isEncrypted = false;
         // 诅咒卡牌ID
         const curseIds = ['AscendersBane','CurseOfTheBell','Necronomicurse','Pride','Clumsy','Decay','Doubt','Injury','Normality','Pain','Parasite','Regret','Shame','Writhe'];
         // 目标遗物列表
-        const targetRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2','Smiling Mask','The Courier','Black Star','WingedGreaves','Membership Card','Omamori','Girya','Dream Catcher','Peace Pipe'];
+        const targetRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2','Smiling Mask','The Courier','Black Star','WingedGreaves','Membership Card','Omamori','Girya','Dream Catcher','Peace Pipe','Shovel'];
         // 基础攻击卡ID
         const attackIds = ['Strike_R', 'Strike_G', 'Strike_B', 'Strike_P'];
         // 基础防御卡ID
