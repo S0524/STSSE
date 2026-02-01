@@ -61,13 +61,15 @@
         let originalFullFileName = '';
         let isContentEncrypted = false;
         const delCardIds = ['AscendersBane','CurseOfTheBell','Necronomicurse','Pride','Clumsy','Decay','Doubt','Injury','Normality','Pain','Parasite','Regret','Shame','Writhe'];
-        const eggRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2','Smiling Mask','The Courier','Black Star','WingedGreaves',,'Membership Card',,'Omamori'];
+        const eggRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2','Smiling Mask','The Courier','Black Star','WingedGreaves','Membership Card','Omamori'];
         const attackCardIds = ['Strike_R', 'Strike_G', 'Strike_B', 'Strike_P'];
         const defendCardIds = ['Defend_R', 'Defend_G', 'Defend_B', 'Defend_P'];
+
         function xorWithKey(data, key) {
             const keyLen = key.length;
             return new Uint8Array(data.map((byte, i) => byte ^ key[i % keyLen]));
         }
+
         function decode(encodedStr) {
             try {
                 const safeStr = encodedStr.trim().replace(/-/g, '+').replace(/_/g, '/');
@@ -79,6 +81,7 @@
                 return null;
             }
         }
+
         function encode(originalStr) {
             try {
                 const originalBytes = new TextEncoder().encode(originalStr);
@@ -89,6 +92,7 @@
                 throw new Error(`加密失败：${e.message}`);
             }
         }
+
         function judgeContentStatus(fileContent) {
             const decryptedJson = decode(fileContent);
             if (decryptedJson) {
@@ -106,6 +110,7 @@
                 throw new Error('文件内容无效：既非加密存档，也非有效JSON');
             }
         }
+
         function readUploadFile() {
             const file = fileInput.files[0];
             if (!file) return;
@@ -132,6 +137,7 @@
             };
             reader.readAsText(file, 'utf-8');
         }
+
         function getJsonObj() {
             try {
                 const val = outputEl.value.trim();
@@ -142,6 +148,7 @@
                 return null;
             }
         }
+
         function modifyNums() {
             const obj = getJsonObj();
             if (!obj) return;
@@ -154,15 +161,20 @@
         function addRelicsAndKeys() {
             const obj = getJsonObj();
             if (!obj) return;
-            if (!Array.isArray(obj.relics)) obj.relics = [];
-            if (!Array.isArray(obj.uncommon_relics)) obj.uncommon_relics = [];
+            const relicLists = ['relics', 'common_relics', 'uncommon_relics', 'rare_relics', 'shop_relics', 'boss_relics'];
+            relicLists.forEach(listName => {
+                if (!Array.isArray(obj[listName])) obj[listName] = [];
+            });
             eggRelics.forEach(egg => !obj.relics.includes(egg) && obj.relics.push(egg));
-            obj.uncommon_relics = obj.uncommon_relics.filter(item => !eggRelics.includes(item));
+            relicLists.slice(1).forEach(listName => {
+                obj[listName] = obj[listName].filter(item => !eggRelics.includes(item));
+            });
             obj.has_ruby_key = true;
             obj.has_emerald_key = true;
             obj.has_sapphire_key = true;
             outputEl.value = JSON.stringify(obj, null, 2);
         }
+
         function filterCards() {
             const obj = getJsonObj();
             if (!obj) return;
@@ -170,6 +182,7 @@
             obj.cards = obj.cards.filter(card => !delCardIds.includes(card.id));
             outputEl.value = JSON.stringify(obj, null, 2);
         }
+
         function upgradeAllCards() {
             const obj = getJsonObj();
             if (!obj) return;
@@ -184,21 +197,23 @@
             obj.red = 10;
             obj.max_health = 99;
             obj.current_health = 99;
-            
-            if (!Array.isArray(obj.relics)) obj.relics = [];
-            if (!Array.isArray(obj.uncommon_relics)) obj.uncommon_relics = [];
+            const relicLists = ['relics', 'common_relics', 'uncommon_relics', 'rare_relics', 'shop_relics', 'boss_relics'];
+            relicLists.forEach(listName => {
+                if (!Array.isArray(obj[listName])) obj[listName] = [];
+            });
             eggRelics.forEach(egg => !obj.relics.includes(egg) && obj.relics.push(egg));
-            obj.uncommon_relics = obj.uncommon_relics.filter(item => !eggRelics.includes(item));
-            
+            relicLists.slice(1).forEach(listName => {
+                obj[listName] = obj[listName].filter(item => !eggRelics.includes(item));
+            });
             if (!Array.isArray(obj.cards)) obj.cards = [];
             obj.cards = obj.cards.filter(card => !delCardIds.includes(card.id));
             obj.cards.forEach(card => card.upgrades = 1);
-            
             obj.has_ruby_key = true;
             obj.has_emerald_key = true;
             obj.has_sapphire_key = true;
             outputEl.value = JSON.stringify(obj, null, 2);
         }
+
         function deleteAttackCards() {
             const obj = getJsonObj();
             if (!obj) return;
@@ -206,6 +221,7 @@
             obj.cards = obj.cards.filter(card => !attackCardIds.includes(card.id));
             outputEl.value = JSON.stringify(obj, null, 2);
         }
+
         function deleteDefendCards() {
             const obj = getJsonObj();
             if (!obj) return;
@@ -213,6 +229,7 @@
             obj.cards = obj.cards.filter(card => !defendCardIds.includes(card.id));
             outputEl.value = JSON.stringify(obj, null, 2);
         }
+
         function downloadMatchingFile() {
             const modifiedJson = outputEl.value.trim();
             if (!modifiedJson) return alert('无修改后的内容可下载！');
@@ -230,6 +247,7 @@
                 alert(`下载失败：${e.message}`);
             }
         }
+
         function copyResult() {
             const val = outputEl.value.trim();
             if (!val) return alert('无内容可复制！');
