@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>尖塔存档修改工具</title>
     <style>
+        /* 修复移动端视口高度问题 */
+        html, body {
+            height: 100%;
+            overflow: auto;
+            margin: 0;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑", "宋体", sans-serif; }
         body { background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); min-height: 100vh; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .app-container { width: 100%; max-width: 1000px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(138, 173, 255, 0.1); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
@@ -25,80 +31,179 @@
         .func-btn.下载:hover { background: #059669; }
         .func-btn.复制 { background: #8b5cf6; }
         .func-btn.复制:hover { background: #7c3aed; }
+
+        /* 修复移动端弹窗居中的样式 */
+        .custom-alert {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            pointer-events: none; /* 仅让弹窗内容可点击 */
+            display: none;
+        }
+        .custom-alert .alert-content {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            padding: 25px 30px;
+            width: 85%;
+            max-width: 350px;
+            text-align: center;
+            pointer-events: auto; /* 弹窗内容可交互 */
+        }
+        .custom-alert-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d4166;
+            margin-bottom: 12px;
+        }
+        .custom-alert-text {
+            font-size: 15px;
+            color: #475569;
+            margin-bottom: 20px;
+        }
+        .custom-alert-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #3b82f6;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .custom-alert-btn:hover {
+            background: #2563eb;
+        }
+        /* 遮罩层 */
+        .alert-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 9998;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <h1 class="app-title">尖塔存档修改工具</h1>
         <div class="upload-section">
-            <input type="file" id="fileInput" title="选择存档文件" onchange="readUploadFile()">
+            <input type="file" id="fileInput" title="选择存档文件" onchange="readFile()">
         </div>
         <div class="textareas-container">
             <textarea id="inputJson" placeholder="选择文件后自动显示内容..."></textarea>
         </div>
         <div class="btn-group">
             <button class="func-btn" onclick="modifyNums()">修改数值</button>
-            <button class="func-btn" onclick="addRelicsAndKeys()">添加遗物</button>
-            <button class="func-btn" onclick="filterCards()">删除诅咒</button>
-            <button class="func-btn" onclick="upgradeAllCards()">升级卡牌</button>
-            <button class="func-btn 主要功能" onclick="runAll()">一键处理</button>
-            <button class="func-btn" onclick="deleteAttackCards()">删除攻击</button>
-            <button class="func-btn" onclick="deleteDefendCards()">删除防御</button>
+            <button class="func-btn" onclick="addRelics()">添加遗物</button>
+            <button class="func-btn" onclick="delCurse()">删除诅咒</button>
+            <button class="func-btn" onclick="upgradeCards()">升级卡牌</button>
+            <button class="func-btn 主要功能" onclick="oneClickOpt()">一键优化</button>
+            <button class="func-btn" onclick="delAttack()">删除攻击</button>
+            <button class="func-btn" onclick="delDefend()">删除防御</button>
             <button class="func-btn 复制" onclick="copyResult()">复制结果</button>
         </div>
         <div class="textareas-container">
             <textarea id="outputJson" placeholder="修改后的结果会显示在这里..."></textarea>
         </div>
         <div class="btn-group">
-            <button class="func-btn 下载" onclick="downloadMatchingFile()">下载文件</button>
+            <button class="func-btn 下载" onclick="downloadFile()">下载文件</button>
         </div>
     </div>
+
+    <!-- 修复后的弹窗结构 -->
+    <div class="alert-mask" id="alertMask"></div>
+    <div class="custom-alert" id="customAlert">
+        <div class="alert-content">
+            <div class="custom-alert-title">操作提示</div>
+            <div class="custom-alert-text" id="alertText">复制成功</div>
+            <button class="custom-alert-btn" onclick="hideAlert()">确定</button>
+        </div>
+    </div>
+
     <script>
         const inputEl = document.getElementById('inputJson');
         const outputEl = document.getElementById('outputJson');
         const fileInput = document.getElementById('fileInput');
-        const ENCRYPTION_KEY = 'key';
-        let originalFullFileName = '';
-        let isContentEncrypted = false;
-        const delCardIds = ['AscendersBane','CurseOfTheBell','Necronomicurse','Pride','Clumsy','Decay','Doubt','Injury','Normality','Pain','Parasite','Regret','Shame','Writhe'];
-        const eggRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2','Smiling Mask','The Courier','Black Star','WingedGreaves','Membership Card','Omamori'];
-        const attackCardIds = ['Strike_R', 'Strike_G', 'Strike_B', 'Strike_P'];
-        const defendCardIds = ['Defend_R', 'Defend_G', 'Defend_B', 'Defend_P'];
+        const customAlert = document.getElementById('customAlert');
+        const alertMask = document.getElementById('alertMask');
+        const alertText = document.getElementById('alertText');
+        const ENCRYPTION_KEY = 'key'; // 加密密钥
+        let originalFileName = '';
+        let isEncrypted = false;
+        // 诅咒卡牌ID
+        const curseIds = ['AscendersBane','CurseOfTheBell','Necronomicurse','Pride','Clumsy','Decay','Doubt','Injury','Normality','Pain','Parasite','Regret','Shame','Writhe'];
+        // 目标遗物列表
+        const targetRelics = ['Molten Egg 2','Toxic Egg 2','Frozen Egg 2','Smiling Mask','The Courier','Black Star','WingedGreaves','Membership Card','Omamori','Girya','Dream Catcher','Peace Pipe'];
+        // 基础攻击卡ID
+        const attackIds = ['Strike_R', 'Strike_G', 'Strike_B', 'Strike_P'];
+        // 基础防御卡ID
+        const defendIds = ['Defend_R', 'Defend_G', 'Defend_B', 'Defend_P'];
+        // 计数类遗物配置（ID:目标次数）
+        const countRelics = { 'WingedGreaves': 99, 'Omamori': 99 };
+        // 所有遗物相关列表
+        const relicLists = ['relics', 'common_relics', 'uncommon_relics', 'rare_relics', 'shop_relics', 'boss_relics'];
 
+        // 显示自定义弹窗
+        function showAlert(text) {
+            alertText.innerText = text;
+            customAlert.style.display = 'flex';
+            alertMask.style.display = 'block';
+        }
+        // 隐藏自定义弹窗
+        function hideAlert() {
+            customAlert.style.display = 'none';
+            alertMask.style.display = 'none';
+        }
+
+        // 异或加密/解密核心函数
         function xorWithKey(data, key) {
             const keyLen = key.length;
             return new Uint8Array(data.map((byte, i) => byte ^ key[i % keyLen]));
         }
 
+        // 解密存档
         function decode(encodedStr) {
             try {
                 const safeStr = encodedStr.trim().replace(/-/g, '+').replace(/_/g, '/');
-                const base64Decoded = Uint8Array.from(atob(safeStr), c => c.charCodeAt(0));
+                const base64Dec = Uint8Array.from(atob(safeStr), c => c.charCodeAt(0));
                 const keyBytes = new TextEncoder().encode(ENCRYPTION_KEY);
-                const decryptedBytes = xorWithKey(base64Decoded, keyBytes);
-                return new TextDecoder('utf-8').decode(decryptedBytes);
+                const decBytes = xorWithKey(base64Dec, keyBytes);
+                return new TextDecoder('utf-8').decode(decBytes);
             } catch (e) {
                 return null;
             }
         }
 
+        // 加密存档
         function encode(originalStr) {
             try {
                 const originalBytes = new TextEncoder().encode(originalStr);
                 const keyBytes = new TextEncoder().encode(ENCRYPTION_KEY);
-                const encryptedBytes = xorWithKey(originalBytes, keyBytes);
-                return btoa(String.fromCharCode(...encryptedBytes)).replace(/\+/g, '-').replace(/\//g, '_');
+                const encBytes = xorWithKey(originalBytes, keyBytes);
+                return btoa(String.fromCharCode(...encBytes)).replace(/\+/g, '-').replace(/\//g, '_');
             } catch (e) {
                 throw new Error(`加密失败：${e.message}`);
             }
         }
 
-        function judgeContentStatus(fileContent) {
-            const decryptedJson = decode(fileContent);
-            if (decryptedJson) {
+        // 判断存档格式并解析
+        function judgeSave(fileContent) {
+            const decJson = decode(fileContent);
+            if (decJson) {
                 try {
-                    JSON.parse(decryptedJson);
-                    return { isEncrypted: true, jsonStr: decryptedJson };
+                    JSON.parse(decJson);
+                    return { isEncrypted: true, jsonStr: decJson };
                 } catch (e) {
                     return { isEncrypted: false, jsonStr: fileContent };
                 }
@@ -107,50 +212,53 @@
                 JSON.parse(fileContent.trim());
                 return { isEncrypted: false, jsonStr: fileContent.trim() };
             } catch (e) {
-                throw new Error('文件内容无效：既非加密存档，也非有效JSON');
+                throw new Error('文件无效：非加密存档或有效JSON');
             }
         }
 
-        function readUploadFile() {
+        // 读取上传文件
+        function readFile() {
             const file = fileInput.files[0];
             if (!file) return;
-            originalFullFileName = file.name;
+            originalFileName = file.name;
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const fileContent = e.target.result;
-                    const { isEncrypted, jsonStr } = judgeContentStatus(fileContent);
-                    isContentEncrypted = isEncrypted;
-                    const parsedObj = JSON.parse(jsonStr);
+                    const content = e.target.result;
+                    const { isEncrypted: encStatus, jsonStr } = judgeSave(content);
+                    isEncrypted = encStatus;
+                    const parsed = JSON.parse(jsonStr);
                     inputEl.value = jsonStr;
-                    outputEl.value = JSON.stringify(parsedObj, null, 2);
+                    outputEl.value = JSON.stringify(parsed, null, 2);
                 } catch (e) {
-                    alert(e.message);
+                    showAlert(e.message);
                     inputEl.value = '';
                     outputEl.value = '';
                 }
             };
             reader.onerror = function() {
-                alert('文件读取失败，请检查文件是否损坏！');
+                showAlert('文件读取失败');
                 inputEl.value = '';
                 outputEl.value = '';
             };
             reader.readAsText(file, 'utf-8');
         }
 
-        function getJsonObj() {
+        // 获取解析后的JSON
+        function getJson() {
             try {
                 const val = outputEl.value.trim();
-                if (!val) throw new Error('请先选择文件');
+                if (!val) throw new Error('请先上传文件');
                 return JSON.parse(val);
             } catch (e) {
-                alert('JSON格式错误：' + e.message);
+                showAlert(`JSON错误：${e.message}`);
                 return null;
             }
         }
 
+        // 修改基础数值
         function modifyNums() {
-            const obj = getJsonObj();
+            const obj = getJson();
             if (!obj) return;
             obj.gold = 999;
             obj.red = 10;
@@ -158,102 +266,156 @@
             obj.current_health = 99;
             outputEl.value = JSON.stringify(obj, null, 2);
         }
-        function addRelicsAndKeys() {
-            const obj = getJsonObj();
+
+        // 添加遗物+钥匙+设置计数
+        function addRelics() {
+            const obj = getJson();
             if (!obj) return;
-            const relicLists = ['relics', 'common_relics', 'uncommon_relics', 'rare_relics', 'shop_relics', 'boss_relics'];
-            relicLists.forEach(listName => {
-                if (!Array.isArray(obj[listName])) obj[listName] = [];
+
+            // 初始化遗物列表
+            relicLists.forEach(list => {
+                if (!Array.isArray(obj[list])) obj[list] = [];
             });
-            eggRelics.forEach(egg => !obj.relics.includes(egg) && obj.relics.push(egg));
-            relicLists.slice(1).forEach(listName => {
-                obj[listName] = obj[listName].filter(item => !eggRelics.includes(item));
+
+            // 添加目标遗物（去重）
+            targetRelics.forEach(relic => {
+                if (!obj.relics.includes(relic)) obj.relics.push(relic);
             });
+
+            // 初始化计数器
+            if (!Array.isArray(obj.relic_counters)) obj.relic_counters = [];
+            while (obj.relic_counters.length < obj.relics.length) {
+                obj.relic_counters.push(-1);
+            }
+
+            // 设置计数类遗物次数
+            Object.entries(countRelics).forEach(([name, count]) => {
+                const idx = obj.relics.indexOf(name);
+                if (idx !== -1) obj.relic_counters[idx] = count;
+            });
+
+            // 去重其他遗物列表
+            relicLists.slice(1).forEach(list => {
+                obj[list] = obj[list].filter(item => !targetRelics.includes(item));
+            });
+
+            // 添加三把钥匙
             obj.has_ruby_key = true;
             obj.has_emerald_key = true;
             obj.has_sapphire_key = true;
+
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
-        function filterCards() {
-            const obj = getJsonObj();
+        // 删除诅咒卡牌
+        function delCurse() {
+            const obj = getJson();
             if (!obj) return;
             if (!Array.isArray(obj.cards)) obj.cards = [];
-            obj.cards = obj.cards.filter(card => !delCardIds.includes(card.id));
+            obj.cards = obj.cards.filter(card => !curseIds.includes(card.id));
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
-        function upgradeAllCards() {
-            const obj = getJsonObj();
+        // 升级所有卡牌
+        function upgradeCards() {
+            const obj = getJson();
             if (!obj) return;
             if (!Array.isArray(obj.cards)) obj.cards = [];
             obj.cards.forEach(card => card.upgrades = 1);
             outputEl.value = JSON.stringify(obj, null, 2);
         }
-        function runAll() {
-            const obj = getJsonObj();
+
+        // 一键优化
+        function oneClickOpt() {
+            const obj = getJson();
             if (!obj) return;
+
+            // 修改基础数值
             obj.gold = 999;
             obj.red = 10;
             obj.max_health = 99;
             obj.current_health = 99;
-            const relicLists = ['relics', 'common_relics', 'uncommon_relics', 'rare_relics', 'shop_relics', 'boss_relics'];
-            relicLists.forEach(listName => {
-                if (!Array.isArray(obj[listName])) obj[listName] = [];
+
+            // 处理遗物和钥匙
+            relicLists.forEach(list => {
+                if (!Array.isArray(obj[list])) obj[list] = [];
             });
-            eggRelics.forEach(egg => !obj.relics.includes(egg) && obj.relics.push(egg));
-            relicLists.slice(1).forEach(listName => {
-                obj[listName] = obj[listName].filter(item => !eggRelics.includes(item));
+            targetRelics.forEach(relic => !obj.relics.includes(relic) && obj.relics.push(relic));
+            // 初始化计数器
+            if (!Array.isArray(obj.relic_counters)) obj.relic_counters = [];
+            while (obj.relic_counters.length < obj.relics.length) {
+                obj.relic_counters.push(-1);
+            }
+            // 设置计数
+            Object.entries(countRelics).forEach(([name, count]) => {
+                const idx = obj.relics.indexOf(name);
+                if (idx !== -1) obj.relic_counters[idx] = count;
             });
-            if (!Array.isArray(obj.cards)) obj.cards = [];
-            obj.cards = obj.cards.filter(card => !delCardIds.includes(card.id));
-            obj.cards.forEach(card => card.upgrades = 1);
+            // 去重
+            relicLists.slice(1).forEach(list => {
+                obj[list] = obj[list].filter(item => !targetRelics.includes(item));
+            });
+            // 钥匙
             obj.has_ruby_key = true;
             obj.has_emerald_key = true;
             obj.has_sapphire_key = true;
+
+            // 处理卡牌
+            if (!Array.isArray(obj.cards)) obj.cards = [];
+            obj.cards = obj.cards.filter(card => !curseIds.includes(card.id));
+            obj.cards.forEach(card => card.upgrades = 1);
+
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
-        function deleteAttackCards() {
-            const obj = getJsonObj();
+        // 删除基础攻击卡
+        function delAttack() {
+            const obj = getJson();
             if (!obj) return;
             if (!Array.isArray(obj.cards)) obj.cards = [];
-            obj.cards = obj.cards.filter(card => !attackCardIds.includes(card.id));
+            obj.cards = obj.cards.filter(card => !attackIds.includes(card.id));
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
-        function deleteDefendCards() {
-            const obj = getJsonObj();
+        // 删除基础防御卡
+        function delDefend() {
+            const obj = getJson();
             if (!obj) return;
             if (!Array.isArray(obj.cards)) obj.cards = [];
-            obj.cards = obj.cards.filter(card => !defendCardIds.includes(card.id));
+            obj.cards = obj.cards.filter(card => !defendIds.includes(card.id));
             outputEl.value = JSON.stringify(obj, null, 2);
         }
 
-        function downloadMatchingFile() {
-            const modifiedJson = outputEl.value.trim();
-            if (!modifiedJson) return alert('无修改后的内容可下载！');
-            if (!originalFullFileName) return alert('请先选择文件！');
+        // 下载文件
+        function downloadFile() {
+            const modified = outputEl.value.trim();
+            if (!modified) return showAlert('无修改内容');
+            if (!originalFileName) return showAlert('请先上传文件');
             try {
-                let fileContent = isContentEncrypted ? encode(modifiedJson) : modifiedJson;
-                const blobType = isContentEncrypted ? 'text/plain;charset=utf-8' : 'application/json;charset=utf-8';
-                const blob = new Blob([fileContent], { type: blobType });
+                const content = isEncrypted ? encode(modified) : modified;
+                const blobType = isEncrypted ? 'text/plain;charset=utf-8' : 'application/json;charset=utf-8';
+                const blob = new Blob([content], { type: blobType });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = originalFullFileName;
+                a.download = originalFileName;
                 a.click();
                 URL.revokeObjectURL(a.href);
+                showAlert('下载成功');
             } catch (e) {
-                alert(`下载失败：${e.message}`);
+                showAlert(`下载失败：${e.message}`);
             }
         }
 
+        // 复制结果
         function copyResult() {
             const val = outputEl.value.trim();
-            if (!val) return alert('无内容可复制！');
-            navigator.clipboard.writeText(val).then(() => {}).catch(() => {
+            if (!val) return showAlert('无内容可复制');
+            navigator.clipboard.writeText(val).then(() => {
+                showAlert('复制成功');
+            }).catch(() => {
                 outputEl.select();
                 document.execCommand('copy');
+                showAlert('复制成功');
             });
         }
     </script>
